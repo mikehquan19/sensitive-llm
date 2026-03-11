@@ -23,7 +23,6 @@ CONVERSATION_MODE = False
 
 # TODO: Train the efficientnet and then put the params file here
 
-
 class CVPipeline:
     def __init__(self, face_detection_params: str, device: device) -> None:
         """
@@ -129,8 +128,9 @@ class CVPipeline:
             face_region: MatLike = image[y1:y2, x1:x2]
 
             # Feed to emotion classifier
-            output = self.emotion_classifier(self._convert_to_tensor(face_region, DEVICE))
-            _, labels = torch.topk(output, NUM_TOP_EMOTIONS)
+            with torch.no_grad():
+                output = self.emotion_classifier(self._convert_to_tensor(face_region, DEVICE))
+                _, labels = torch.topk(output, NUM_TOP_EMOTIONS)
             emotions = [AVAILABLE_EMOTIONS[l] for l in labels[0].cpu().numpy()]
                     
             try:
@@ -188,7 +188,7 @@ if __name__ == "__main__":
         # Create the images folder if it doesn't exist yet
         os.makedirs("./images", exist_ok=True)
     except Exception as e:
-        raise Exception(f"Error occured when initializing pipelines\n{e}")
+        raise e
 
     while True:
         conversation(llm, cv_pipeline)
